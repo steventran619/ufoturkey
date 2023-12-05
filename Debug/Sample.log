@@ -1,3 +1,7 @@
 ﻿  sample.cpp
+C:\Users\Steven\source\repos\steventran619\ufoturkey\sample.cpp(459,60): warning C4244: 'argument': conversion from 'double' to 'GLfloat', possible loss of data
+C:\Users\Steven\source\repos\steventran619\ufoturkey\sample.cpp(461,62): warning C4244: 'argument': conversion from 'double' to 'GLfloat', possible loss of data
+C:\Users\Steven\source\repos\steventran619\ufoturkey\sample.cpp(907,61): warning C4244: 'argument': conversion from 'double' to 'GLfloat', possible loss of data
+C:\Users\Steven\source\repos\steventran619\ufoturkey\sample.cpp(911,61): warning C4244: 'argument': conversion from 'double' to 'GLfloat', possible loss of data
 sample.obj : warning LNK4075: ignoring '/EDITANDCONTINUE' due to '/INCREMENTAL:NO' specification
   Sample.vcxproj -> C:\Users\Steven\source\repos\steventran619\ufoturkey\Debug\Sample.exe

@@ -23,7 +23,7 @@
 #include "glut.h"
 
 
-//	This is a sample OpenGL / GLUT program
+//	This is a sample OpenGL / GLUT program that has been modified to illustrate a UFO animation.
 //
 //	The objective is to draw a 3d object and change the color of the axes
 //		with a glut menu
@@ -39,11 +39,11 @@
 //		6. The transformations to be reset
 //		7. The program to quit
 //
-//	Author:			Joe Graphics
+//	Author:			Steven Tran
 
 // title of these windows:
 
-const char *WINDOWTITLE = "OpenGL / GLUT Sample -- Joe Graphics";
+const char *WINDOWTITLE = "OpenGL / GLUT UFO Turkey -- Steven Tran";
 const char *GLUITITLE   = "User Interface Window";
 
 // what the glui package defines as true and false:
@@ -177,6 +177,10 @@ const int MS_PER_CYCLE = 10000;		// 10000 milliseconds = 10 seconds
 
 int		ActiveButton;			// current button that is down
 GLuint	AxesList;				// list to hold the axes
+GLuint	BowlingPinsList;		// list to hold the bowling pins
+GLuint	TurkeyList;				// list to hold the turkey
+GLuint	PlateList;				// list to hold the plate
+GLuint	UfoList;				// list to hold the UFO
 int		AxesOn;					// != 0 means to draw the axes
 GLuint	BoxList;				// object display list
 int		DebugOn;				// != 0 means to print debugging info
@@ -270,14 +274,14 @@ MulArray3(float factor, float a, float b, float c )
 
 // these are here for when you need them -- just uncomment the ones you need:
 
-//#include "setmaterial.cpp"
-//#include "setlight.cpp"
+#include "setmaterial.cpp"
+#include "setlight.cpp"
 //#include "osusphere.cpp"
 //#include "osucone.cpp"
 //#include "osutorus.cpp"
-//#include "bmptotexture.cpp"
-//#include "loadobjfile.cpp"
-//#include "keytime.cpp"
+#include "bmptotexture.cpp"
+#include "loadobjfile.cpp"
+#include "keytime.cpp"
 //#include "glslprogram.cpp"
 
 
@@ -401,7 +405,7 @@ Display( )
 
 	// set the eye position, look-at position, and up-vector:
 
-	gluLookAt( 0.f, 0.f, 3.f,     0.f, 0.f, 0.f,     0.f, 1.f, 0.f );
+	gluLookAt( 0.f, 6.f, 9.f,     0.f, 3.f, 0.f,     0.f, 1.f, 0.f );
 
 	// rotate the scene:
 
@@ -445,7 +449,24 @@ Display( )
 
 	// draw the box object by calling up its display list:
 
-	glCallList( BoxList );
+	//glCallList( BoxList );
+
+	// call the bowling pins list
+	// triangle placements are based on the equilateral triangle
+	SetMaterial(1.f, 1.f, 1.f, 10.f);
+	glPushMatrix();
+	float triangleEdge = 7;
+	glTranslatef(-triangleEdge / 2, 0, sqrt(3) * triangleEdge / 2);
+	for (int row = 1; row <= 2; row++) {
+		glTranslatef(-triangleEdge / 2, 0, -sqrt(3) * triangleEdge / 2);
+		glPushMatrix();
+		for (int col = 1; col <= row; col++) {
+			glTranslatef(triangleEdge, 0, 0);
+			glCallList(BowlingPinsList);
+			}
+		glPopMatrix();
+		}
+	glPopMatrix();
 
 #ifdef DEMO_Z_FIGHTING
 	if( DepthFightingOn != 0 )
@@ -875,6 +896,29 @@ InitLists( )
 		glEnd( );
 
 	glEndList( );
+
+	// Create a set of 10 bowling pins
+	BowlingPinsList = glGenLists(1);
+	glNewList(BowlingPinsList, GL_COMPILE);
+	
+	float triangleEdge = 1.5;
+	glPushMatrix();
+		glScalef(0.5, 0.5, 0.5);
+		glTranslatef(-triangleEdge / 2, 0, sqrt(3) * triangleEdge / 2);
+		glColor3f(1, 1, 1);
+		glPushMatrix();
+		for (int row = 1; row <= 4; row++) {
+			glTranslatef(-triangleEdge/2, 0, -sqrt(3) * triangleEdge / 2);
+			glPushMatrix();
+			for (int col = 1; col <= row; col++) {
+				glTranslatef(triangleEdge, 0.f , 0.f);
+				LoadObjFile((char*)"bowling_pin.obj");
+			}
+			glPopMatrix();
+		}
+		glPopMatrix();
+	glPopMatrix();
+	glEndList();
 
 
 	// create the axes:
