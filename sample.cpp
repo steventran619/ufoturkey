@@ -178,6 +178,7 @@ const int MS_PER_CYCLE = 10000;		// 10000 milliseconds = 10 seconds
 int		ActiveButton;			// current button that is down
 GLuint	AxesList;				// list to hold the axes
 GLuint	BowlingPinsList;		// list to hold the bowling pins
+GLuint	GridDl;					// list to hold the grid/planet
 GLuint	TurkeyList;				// list to hold the turkey
 GLuint	PlateList;				// list to hold the plate
 GLuint	UfoList;				// list to hold the UFO
@@ -195,6 +196,7 @@ int		ShadowsOn;				// != 0 means to turn shadows on
 float	Time;					// used for animation, this has a value between 0. and 1.
 int		Xmouse, Ymouse;			// mouse values
 float	Xrot, Yrot;				// rotation angles in degrees
+GLuint	UfoTexture;				// texture for the UFO	
 
 
 // function prototypes:
@@ -271,6 +273,19 @@ MulArray3(float factor, float a, float b, float c )
 	array[3] = 1.;
 	return array;
 }
+
+// Defining the Grid Information
+#define XSIDE	200			// length of the x side of the grid
+#define X0      (-XSIDE/2.)		// where one side starts
+#define NX	999			// how many points in x
+#define DX	( XSIDE/(float)NX )	// change in x between the points
+
+#define YGRID	0.f
+
+#define ZSIDE	200			// length of the z side of the grid
+#define Z0      (-ZSIDE/2.)		// where one side starts
+#define NZ	999			// how many points in z
+#define DZ	( ZSIDE/(float)NZ )	// change in z between the points
 
 // these are here for when you need them -- just uncomment the ones you need:
 
@@ -446,16 +461,19 @@ Display( )
 
 	glEnable( GL_NORMALIZE );
 
-
 	// draw the box object by calling up its display list:
 
-	//glCallList( BoxList );
+	glEnable(GL_TEXTURE_2D);
+	glCallList(UfoList);
+	//glCallList(GridDl);
+	glDisable(GL_TEXTURE_2D);
 
-	// call the bowling pins list
-	// triangle placements are based on the equilateral triangle
+
+	// Bowling set of pins based on equilateral triangle
+	// TODO: May need to change this so that it only displays within a certain time frame 
 	SetMaterial(1.f, 1.f, 1.f, 10.f);
 	glPushMatrix();
-	float triangleEdge = 7;
+	float triangleEdge = 9;
 	glTranslatef(-triangleEdge / 2, 0, sqrt(3) * triangleEdge / 2);
 	for (int row = 1; row <= 2; row++) {
 		glTranslatef(-triangleEdge / 2, 0, -sqrt(3) * triangleEdge / 2);
@@ -463,10 +481,11 @@ Display( )
 		for (int col = 1; col <= row; col++) {
 			glTranslatef(triangleEdge, 0, 0);
 			glCallList(BowlingPinsList);
-			}
+		}
 		glPopMatrix();
 		}
 	glPopMatrix();
+
 
 #ifdef DEMO_Z_FIGHTING
 	if( DepthFightingOn != 0 )
@@ -824,7 +843,22 @@ InitGraphics( )
 #endif
 
 	// all other setups go here, such as GLSLProgram and KeyTime setups:
+	int width, height;
+	char* file = (char*)"ufo_diffuse.bmp";
+	unsigned char* ufoTexture = BmpToTexture(file, &width, &height);
+	if (ufoTexture == NULL)
+		fprintf(stderr, "Cannot open texture '%s'\n", file);
+	else
+		fprintf(stderr, "Opened '%s': width = %d ; height = %d\n", file, width, height);
 
+	glGenTextures(1, &UfoTexture);
+	glBindTexture(GL_TEXTURE_2D, UfoTexture);
+	glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexImage2D(GL_TEXTURE_2D, 0, 3, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, ufoTexture);
 }
 
 
@@ -917,6 +951,41 @@ InitLists( )
 			glPopMatrix();
 		}
 		glPopMatrix();
+	glPopMatrix();
+	glEndList();
+
+	// Create a UFO
+	UfoList = glGenLists(1);
+	glNewList(UfoList, GL_COMPILE);
+	
+	glPushMatrix();
+		glColor3f(1.f, 1.f, 1.f);
+		glBindTexture(GL_TEXTURE_2D, UfoTexture);
+		glTranslatef(0.f, 10.f, -20.f);
+		glScalef(0.1, 0.1, 0.1);
+		LoadObjFile((char*)"ufo_low_poly.obj");
+	glPopMatrix();
+	glEndList();
+
+	// create the grassy grid
+	GridDl = glGenLists(1);
+	glNewList(GridDl, GL_COMPILE);
+	SetMaterial(0.173f, 0.525f, 0.082f, 10.f);
+	// glColor3f( .5, 0.5, 0.5 );
+
+	glNormal3f(0., 1., 0.);
+	glPushMatrix();
+	glTranslatef(0, -.5, 0);
+	for (int i = 0; i < NZ; i++)
+	{
+		glBegin(GL_QUAD_STRIP);
+		for (int j = 0; j < NX; j++)
+		{
+			glVertex3f(X0 + DX * (float)j, YGRID, Z0 + DZ * (float)(i + 0));
+			glVertex3f(X0 + DX * (float)j, YGRID, Z0 + DZ * (float)(i + 1));
+		}
+		glEnd();
+	}
 	glPopMatrix();
 	glEndList();
 

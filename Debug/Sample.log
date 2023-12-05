@@ -1,7 +1,14 @@
 ﻿  sample.cpp
-C:\Users\Steven\source\repos\steventran619\ufoturkey\sample.cpp(459,60): warning C4244: 'argument': conversion from 'double' to 'GLfloat', possible loss of data
-C:\Users\Steven\source\repos\steventran619\ufoturkey\sample.cpp(461,62): warning C4244: 'argument': conversion from 'double' to 'GLfloat', possible loss of data
-C:\Users\Steven\source\repos\steventran619\ufoturkey\sample.cpp(907,61): warning C4244: 'argument': conversion from 'double' to 'GLfloat', possible loss of data
-C:\Users\Steven\source\repos\steventran619\ufoturkey\sample.cpp(911,61): warning C4244: 'argument': conversion from 'double' to 'GLfloat', possible loss of data
+C:\Users\Steven\source\repos\steventran619\ufoturkey\sample.cpp(477,60): warning C4244: 'argument': conversion from 'double' to 'GLfloat', possible loss of data
+C:\Users\Steven\source\repos\steventran619\ufoturkey\sample.cpp(479,62): warning C4244: 'argument': conversion from 'double' to 'GLfloat', possible loss of data
+C:\Users\Steven\source\repos\steventran619\ufoturkey\sample.cpp(941,61): warning C4244: 'argument': conversion from 'double' to 'GLfloat', possible loss of data
+C:\Users\Steven\source\repos\steventran619\ufoturkey\sample.cpp(945,61): warning C4244: 'argument': conversion from 'double' to 'GLfloat', possible loss of data
+C:\Users\Steven\source\repos\steventran619\ufoturkey\sample.cpp(965,22): warning C4305: 'argument': truncation from 'double' to 'GLfloat'
+C:\Users\Steven\source\repos\steventran619\ufoturkey\sample.cpp(965,17): warning C4305: 'argument': truncation from 'double' to 'GLfloat'
+C:\Users\Steven\source\repos\steventran619\ufoturkey\sample.cpp(965,12): warning C4305: 'argument': truncation from 'double' to 'GLfloat'
+C:\Users\Steven\source\repos\steventran619\ufoturkey\sample.cpp(984,45): warning C4244: 'argument': conversion from 'double' to 'GLfloat', possible loss of data
+C:\Users\Steven\source\repos\steventran619\ufoturkey\sample.cpp(984,18): warning C4244: 'argument': conversion from 'double' to 'GLfloat', possible loss of data
+C:\Users\Steven\source\repos\steventran619\ufoturkey\sample.cpp(985,45): warning C4244: 'argument': conversion from 'double' to 'GLfloat', possible loss of data
+C:\Users\Steven\source\repos\steventran619\ufoturkey\sample.cpp(985,18): warning C4244: 'argument': conversion from 'double' to 'GLfloat', possible loss of data
 sample.obj : warning LNK4075: ignoring '/EDITANDCONTINUE' due to '/INCREMENTAL:NO' specification
   Sample.vcxproj -> C:\Users\Steven\source\repos\steventran619\ufoturkey\Debug\Sample.exe
