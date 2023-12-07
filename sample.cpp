@@ -197,6 +197,8 @@ float	Time;					// used for animation, this has a value between 0. and 1.
 int		Xmouse, Ymouse;			// mouse values
 float	Xrot, Yrot;				// rotation angles in degrees
 GLuint	UfoTexture;				// texture for the UFO	
+GLuint	MoonTexture;			// texture for the moon
+//int		Tex0, Tex1;				// texture objects
 
 
 // function prototypes:
@@ -277,14 +279,14 @@ MulArray3(float factor, float a, float b, float c )
 // Defining the Grid Information
 #define XSIDE	200			// length of the x side of the grid
 #define X0      (-XSIDE/2.)		// where one side starts
-#define NX	999			// how many points in x
+#define NX	600			// how many points in x
 #define DX	( XSIDE/(float)NX )	// change in x between the points
 
 #define YGRID	0.f
 
 #define ZSIDE	200			// length of the z side of the grid
 #define Z0      (-ZSIDE/2.)		// where one side starts
-#define NZ	999			// how many points in z
+#define NZ	800			// how many points in z
 #define DZ	( ZSIDE/(float)NZ )	// change in z between the points
 
 // these are here for when you need them -- just uncomment the ones you need:
@@ -420,7 +422,7 @@ Display( )
 
 	// set the eye position, look-at position, and up-vector:
 
-	gluLookAt( 0.f, 6.f, 9.f,     0.f, 3.f, 0.f,     0.f, 1.f, 0.f );
+	gluLookAt( 0.f, 3.f, 5.5f,     0.f, 1.f, -25.f,     0.f, 1.f, 0.f );
 
 	// rotate the scene:
 
@@ -464,9 +466,15 @@ Display( )
 	// draw the box object by calling up its display list:
 
 	glEnable(GL_TEXTURE_2D);
+	glBindTexture(GL_TEXTURE_2D, UfoTexture);
+	glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
 	glCallList(UfoList);
-	//glCallList(GridDl);
+
+	glBindTexture(GL_TEXTURE_2D, MoonTexture);
+	//glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
+	glCallList(GridDl);
 	glDisable(GL_TEXTURE_2D);
+
 
 
 	// Bowling set of pins based on equilateral triangle
@@ -859,6 +867,25 @@ InitGraphics( )
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	glTexImage2D(GL_TEXTURE_2D, 0, 3, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, ufoTexture);
+
+
+	// Moon/Planet Texture
+	int width2, height2;
+	char* moonFile = (char*)"moon_8bit.bmp";
+	unsigned char* moonTexture = BmpToTexture(moonFile, &width2, &height2);
+	if (moonTexture == NULL)
+		fprintf(stderr, "Cannot open texture '%s'\n", moonFile);
+	else
+		fprintf(stderr, "Opened '%s': width = %d ; height = %d\n", moonFile, width2, height2);
+
+	glGenTextures(1, &MoonTexture);
+	glBindTexture(GL_TEXTURE_2D, MoonTexture);
+	glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	glTexImage2D(GL_TEXTURE_2D, 0, 3, width2, height2, 0, GL_RGB, GL_UNSIGNED_BYTE, moonTexture);
 }
 
 
@@ -960,27 +987,30 @@ InitLists( )
 	
 	glPushMatrix();
 		glColor3f(1.f, 1.f, 1.f);
-		glBindTexture(GL_TEXTURE_2D, UfoTexture);
 		glTranslatef(0.f, 10.f, -20.f);
 		glScalef(0.1, 0.1, 0.1);
 		LoadObjFile((char*)"ufo_low_poly.obj");
 	glPopMatrix();
 	glEndList();
 
-	// create the grassy grid
+	// create the planetary/moon like grid
 	GridDl = glGenLists(1);
 	glNewList(GridDl, GL_COMPILE);
-	SetMaterial(0.173f, 0.525f, 0.082f, 10.f);
-	// glColor3f( .5, 0.5, 0.5 );
-
 	glNormal3f(0., 1., 0.);
 	glPushMatrix();
 	glTranslatef(0, -.5, 0);
+	glColor3f(1.f, 1.f, 1.f);
+	// (s, t) for textures
+	float xmin = 0, xmax = 500, zmin = 0,  zmax = 1000;
 	for (int i = 0; i < NZ; i++)
 	{
+		
 		glBegin(GL_QUAD_STRIP);
 		for (int j = 0; j < NX; j++)
 		{
+			float sx = (i - xmin) / (xmax - xmin);
+			float tz = (j - zmin) / (zmax - zmin);
+			glTexCoord2f(sx, tz);
 			glVertex3f(X0 + DX * (float)j, YGRID, Z0 + DZ * (float)(i + 0));
 			glVertex3f(X0 + DX * (float)j, YGRID, Z0 + DZ * (float)(i + 1));
 		}
