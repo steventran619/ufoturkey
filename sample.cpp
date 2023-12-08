@@ -163,7 +163,7 @@ const float	WHITE[ ] = { 1.,1.,1.,1. };
 
 // for animation:
 
-const int MS_PER_CYCLE = 10000;		// 10000 milliseconds = 10 seconds
+const int MS_PER_CYCLE = 12000;		// 10000 milliseconds = 10 seconds
 
 
 // what options should we compile-in?
@@ -289,7 +289,7 @@ MulArray3(float factor, float a, float b, float c )
 
 #define YGRID	0.f
 
-#define ZSIDE	200			// length of the z side of the grid
+#define ZSIDE	240			// length of the z side of the grid
 #define Z0      (-ZSIDE/2.)		// where one side starts
 #define NZ	800			// how many points in z
 #define DZ	( ZSIDE/(float)NZ )	// change in z between the points
@@ -331,6 +331,9 @@ float secondPinArrival = firstPinEnd + travelPeriod;
 float secondPinEnd = secondPinArrival + hoverPeriod;
 float thirdPinArrival = secondPinEnd + travelPeriod;
 float thirdPinEnd = thirdPinArrival + hoverPeriod;
+float turkeyArrival = thirdPinEnd + 0.5f;
+float turkeyEnd = turkeyArrival + hoverPeriod/2;
+
 float ufoHoverHeight = 3.f;
 
 // main program:
@@ -528,7 +531,6 @@ Display( )
 			0,
 			0, 1, 0);
 		glTranslatef(xUfo.GetValue(nowTime), yUfo.GetValue(nowTime), zUfo.GetValue(nowTime));
-
 		glRotatef(yRotUfo.GetValue(nowTime), 0, 1, 0);
 		glCallList(UfoList);
 		
@@ -558,62 +560,110 @@ Display( )
 	glPopMatrix();
 
 
-
-	// Bowling set of pins based on equilateral triangle
-	// TODO: May need to change this so that it only displays within a certain time frame 
-	//SetMaterial(1.f, 1.f, 1.f, 15.f);
-	//glPushMatrix();
-	//glTranslatef(-pinsPlacement / 2, 0, sqrt(3) * pinsPlacement / 2);
-	//for (int row = 1; row <= 2; row++) {
-	//	glTranslatef(-pinsPlacement / 2, 0, -sqrt(3) * pinsPlacement / 2);
-	//	glPushMatrix();
-	//	for (int col = 1; col <= row; col++) {
-	//		glTranslatef(pinsPlacement, 0, 0);
-	//		glCallList(BowlingPinsList);
-	//	}
-	//	glPopMatrix();
-	//	}
-	//glPopMatrix();
-
 	// Attempt at isolating the 3 pin sets
 	glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);	// make the bowling pins shine through the texture
 
 	SetMaterial(1.f, 1.f, 1.f, 15.f);
 	glBindTexture(GL_TEXTURE_2D, BowlingPinTexture);
+	
 
+	float dissapearOffsetTime = 0.6f;
 	//glMaterialfv(GL_FRONT, GL_AMBIENT, WHITE);
+	/*  Pin Order
+	*   1   2
+	*     3
+	*/
 	glPushMatrix();
 	glTranslatef(-pinsPlacement / 2, 0, sqrt(3) * pinsPlacement / 2);
 	glTranslatef(-pinsPlacement / 2, 0, -sqrt(3) * pinsPlacement / 2);
 	glPushMatrix();
 	glTranslatef(pinsPlacement, 0, 0);
-	if (nowTime < thirdPinEnd)
-		glCallList(BowlingPinsList);	// pin set front (1)
+	// Front Pin Setting
+	if (nowTime < thirdPinEnd - dissapearOffsetTime - .2) {
+		if (nowTime > thirdPinArrival) {
+			glPushMatrix();
+			glTranslatef(0, yPins3.GetValue(nowTime), 0);
+			glScalef(PinsScale3.GetValue(nowTime), PinsScale3.GetValue(nowTime), PinsScale3.GetValue(nowTime));
+			glCallList(BowlingPinsList);
+			glPopMatrix();
+		}
+		else {
+			glCallList(BowlingPinsList);
+
+		}
+	}
 	glPopMatrix();
 	glTranslatef(-pinsPlacement / 2, 0, -sqrt(3) * pinsPlacement / 2);
 	glPushMatrix();
 	glTranslatef(pinsPlacement, 0, 0);
-	if (nowTime < firstPinEnd)
-		glCallList(BowlingPinsList);	// pin set back left (2)
+	// Back Left Pin (1st) Setting
+	if (nowTime < firstPinEnd - dissapearOffsetTime) {
+
+		if (nowTime > firstPinArrival) {
+			glPushMatrix();
+			glTranslatef(0, yPins1.GetValue(nowTime), 0);
+			glScalef(PinsScale1.GetValue(nowTime), PinsScale1.GetValue(nowTime), PinsScale1.GetValue(nowTime));
+			glCallList(BowlingPinsList);	
+			glPopMatrix();
+		}
+		else {
+			glCallList(BowlingPinsList);
+
+		}
+	}
 	glTranslatef(pinsPlacement, 0, 0);
-	if (nowTime < secondPinEnd)
-		glCallList(BowlingPinsList);	// pin set back right (3)
+	// Back Right Pin (2nd) Setting
+	if (nowTime < secondPinEnd - dissapearOffsetTime)
+		//glCallList(BowlingPinsList);	// pin set back right (3)
+		if (nowTime > secondPinArrival) {
+			glPushMatrix();
+			glTranslatef(0, yPins2.GetValue(nowTime), 0);
+			glScalef(PinsScale2.GetValue(nowTime), PinsScale2.GetValue(nowTime), PinsScale2.GetValue(nowTime));
+			glCallList(BowlingPinsList);
+			glPopMatrix();
+		}
+		else {
+			glCallList(BowlingPinsList);
+
+		}
 	glPopMatrix();
 	glPopMatrix();
 
+	// Disable Textures and Lighting for Beam Transparency
 	glDisable(GL_TEXTURE_2D);
-
 	glDisable(GL_LIGHTING);
 
-	glEnable(GL_BLEND);			// enable color blending	
-	glDepthMask(GL_FALSE); // disable writes to Z-Buffer
+	glEnable(GL_BLEND);						// enable color blending	
+	glDepthMask(GL_FALSE);					// disable writes to Z-Buffer
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);	
 
-	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);	// how to blend
 
+	// Beam Transparency
 	glPushMatrix();
-		glTranslatef(0, 0, -sqrt(3) * pinsPlacement / 12);
-		glCallList(CylinderList);
+		glTranslatef(-pinsPlacement / 2, 0, sqrt(3) * pinsPlacement / 2);
+		glTranslatef(-pinsPlacement / 2, 0, -sqrt(3) * pinsPlacement / 2);
+	glPushMatrix();
+		glTranslatef(pinsPlacement, 0, -1.05);
+		// Third Beam
+		if (nowTime > thirdPinArrival && nowTime < turkeyArrival) {
+			glCallList(CylinderList);
+		}
 	glPopMatrix();
+		glTranslatef(-pinsPlacement / 2, 0, -sqrt(3) * pinsPlacement / 2);
+	glPushMatrix();
+		glTranslatef(pinsPlacement + 0.1, 0, -1.08);
+		// First Beam
+		if (nowTime > firstPinArrival && nowTime < firstPinEnd) {
+			glCallList(CylinderList);
+		}
+		glTranslatef(pinsPlacement, 0, 0);
+		// Second Beam
+		if (nowTime > secondPinArrival && nowTime < secondPinEnd) {
+			glCallList(CylinderList);
+		}
+	glPopMatrix();
+	glPopMatrix();
+
 
 	glDepthMask(GL_TRUE);
 	glDisable(GL_BLEND);
@@ -1079,7 +1129,6 @@ InitGraphics( )
 	}
 
 	xUfo.AddTimeValue(0.f, 0.f);
-	//xUfo.AddTimeValue(firstPinArrival, -pinsPlacement/2.f);
 	for (float i = firstPinArrival; i < firstPinEnd; i += 0.1f) {
 		xUfo.AddTimeValue(i, -pinsPlacement / 2.f - 1);
 	}
@@ -1087,7 +1136,6 @@ InitGraphics( )
 	for (float i = secondPinArrival; i < secondPinEnd; i += 0.1f) {
 		xUfo.AddTimeValue(i, (pinsPlacement / 2.f) - .7);
 	}
-	//xUfo.AddTimeValue(secondPinEnd, pinsPlacement / 2);
 	for (float i = thirdPinArrival; i < thirdPinEnd; i += 0.1f) {
 		xUfo.AddTimeValue(i, -pinsPlacement / 8.f);
 	}
@@ -1096,10 +1144,10 @@ InitGraphics( )
 	for (float i = firstPinArrival; i < secondPinEnd; i += 0.1f) {
 		yUfo.AddTimeValue(i, ufoHoverHeight);
 	}
-	for (float i = thirdPinArrival; i < thirdPinArrival + hoverPeriod; i += 0.1f) {
+	for (float i = thirdPinArrival; i < turkeyArrival; i += 0.1f) {
 		yUfo.AddTimeValue(i, ufoHoverHeight - .3);
 	}
-	yUfo.AddTimeValue(9, 99.f);
+	yUfo.AddTimeValue(turkeyEnd, 99.f);
 
 	zUfo.AddTimeValue(0.f, -20.f);
 	for (float i = firstPinArrival; i < firstPinEnd; i += 0.1f) {
@@ -1109,10 +1157,38 @@ InitGraphics( )
 	for (float i = secondPinArrival; i < secondPinEnd; i += 0.1f) {
 		zUfo.AddTimeValue(i, 1);
 	}
-	//xUfo.AddTimeValue(secondPinEnd, pinsPlacement / 2);
 	for (float i = thirdPinArrival; i < thirdPinEnd; i += 0.1f) {
 		zUfo.AddTimeValue(i, 1 + sqrt(3) * pinsPlacement / 2);
 	}
+
+	// Keytime Set Up For Bowling Pins
+	yPins1.Init();
+	yPins2.Init();
+	yPins3.Init();
+
+	yPins1.AddTimeValue(firstPinArrival, 0.f);
+	yPins1.AddTimeValue(firstPinEnd, 4.f);
+
+	yPins2.AddTimeValue(secondPinArrival, 0.f);
+	yPins2.AddTimeValue(secondPinEnd, 4.f);
+
+	yPins3.AddTimeValue(thirdPinArrival, 0.f);
+	yPins3.AddTimeValue(thirdPinEnd, 4.f);
+
+	PinsScale1.Init();
+	PinsScale2.Init();
+	PinsScale3.Init();
+
+	PinsScale1.AddTimeValue(firstPinArrival, .95f);
+	PinsScale1.AddTimeValue(firstPinEnd, 0.1f);
+
+	PinsScale2.AddTimeValue(secondPinArrival, .95f);
+	PinsScale2.AddTimeValue(secondPinEnd, 0.1f);
+
+	PinsScale3.AddTimeValue(thirdPinArrival, 1.f);
+	PinsScale3.AddTimeValue(thirdPinEnd, 0.2f);
+
+
 }
 
 
