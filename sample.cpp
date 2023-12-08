@@ -200,6 +200,8 @@ float	Xrot, Yrot;				// rotation angles in degrees
 GLuint	UfoTexture;				// texture for the UFO	
 GLuint	MoonTexture;			// texture for the moon
 GLuint	StarTexture;			// texture for the stars
+GLuint	BowlingPinTexture;			// texture for the bowling pin
+
 
 //int		Tex0, Tex1;				// texture objects
 
@@ -555,7 +557,6 @@ Display( )
 		glCallList(GridDl);
 	glPopMatrix();
 
-	glDisable(GL_TEXTURE_2D);
 
 
 	// Bowling set of pins based on equilateral triangle
@@ -575,7 +576,11 @@ Display( )
 	//glPopMatrix();
 
 	// Attempt at isolating the 3 pin sets
+	glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);	// make the bowling pins shine through the texture
+
 	SetMaterial(1.f, 1.f, 1.f, 15.f);
+	glBindTexture(GL_TEXTURE_2D, BowlingPinTexture);
+
 	//glMaterialfv(GL_FRONT, GL_AMBIENT, WHITE);
 	glPushMatrix();
 	glTranslatef(-pinsPlacement / 2, 0, sqrt(3) * pinsPlacement / 2);
@@ -595,6 +600,8 @@ Display( )
 		glCallList(BowlingPinsList);	// pin set back right (3)
 	glPopMatrix();
 	glPopMatrix();
+
+	glDisable(GL_TEXTURE_2D);
 
 	glDisable(GL_LIGHTING);
 
@@ -1027,6 +1034,25 @@ InitGraphics( )
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 	glTexImage2D(GL_TEXTURE_2D, 0, 3, width3, height3, 0, GL_RGB, GL_UNSIGNED_BYTE, starTexture);
 
+	// Bowling Pin Texture
+	int width4, height4;
+	char* bowlingPinTextureFile = (char*)"pin-text-new.bmp";
+	unsigned char* bowlingPinTexture = BmpToTexture(bowlingPinTextureFile, &width4, &height4);
+	if (bowlingPinTexture == NULL)
+		fprintf(stderr, "Cannot open texture '%s'\n", bowlingPinTextureFile);
+	else
+		fprintf(stderr, "Opened '%s': width = %d ; height = %d\n", bowlingPinTextureFile, width4, height4);
+
+	glGenTextures(1, &BowlingPinTexture);
+	glBindTexture(GL_TEXTURE_2D, BowlingPinTexture);
+	glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	glTexImage2D(GL_TEXTURE_2D, 0, 3, width4, height4, 0, GL_RGB, GL_UNSIGNED_BYTE, bowlingPinTexture);
+
+
 	// Keytime Set Up For UFO
 
 	//// Keypoints
@@ -1087,8 +1113,6 @@ InitGraphics( )
 	for (float i = thirdPinArrival; i < thirdPinEnd; i += 0.1f) {
 		zUfo.AddTimeValue(i, 1 + sqrt(3) * pinsPlacement / 2);
 	}
-
-
 }
 
 
@@ -1183,18 +1207,21 @@ InitLists( )
 	BowlingPinsList = glGenLists(1);
 	glNewList(BowlingPinsList, GL_COMPILE);
 	
-	float triangleEdge = 1.5;
+	float triangleEdge = 12;
 	glPushMatrix();
-		glScalef(0.5, 0.5, 0.5);
-		glTranslatef(-triangleEdge / 2, 0, sqrt(3) * triangleEdge / 2);
+		//glTranslatef(-triangleEdge / 2, 1, sqrt(3) * triangleEdge / 2);
+		glTranslatef(-.4, 1, .55);
+		glScalef(0.06, 0.06, 0.06);
 		glColor3f(1, 1, 1);
 		glPushMatrix();
+		glBindTexture(GL_TEXTURE_2D, BowlingPinTexture);
 		for (int row = 1; row <= 4; row++) {
 			glTranslatef(-triangleEdge/2, 0, -sqrt(3) * triangleEdge / 2);
 			glPushMatrix();
+			
 			for (int col = 1; col <= row; col++) {
 				glTranslatef(triangleEdge, 0.f , 0.f);
-				LoadObjFile((char*)"bowling_pin.obj");
+				LoadObjFile((char*)"bowling_pin_new2.obj");
 			}
 			glPopMatrix();
 		}
@@ -1229,7 +1256,7 @@ InitLists( )
 		{
 			float sx = (i - xmin) / (xmax - xmin);
 			float tz = (j - zmin) / (zmax - zmin);
-			glTexCoord2f(sx, tz);
+			glTexCoord2f(sx, tz);	// For mapping the texture
 			glVertex3f(X0 + DX * (float)j, YGRID, Z0 + DZ * (float)(i + 0));
 			glVertex3f(X0 + DX * (float)j, YGRID, Z0 + DZ * (float)(i + 1));
 		}
