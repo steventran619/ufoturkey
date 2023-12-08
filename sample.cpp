@@ -200,7 +200,9 @@ float	Xrot, Yrot;				// rotation angles in degrees
 GLuint	UfoTexture;				// texture for the UFO	
 GLuint	MoonTexture;			// texture for the moon
 GLuint	StarTexture;			// texture for the stars
-GLuint	BowlingPinTexture;			// texture for the bowling pin
+GLuint	BowlingPinTexture;		// texture for the bowling pin
+GLuint	TurkeyTexture;			// texture for the turkey
+
 
 
 //int		Tex0, Tex1;				// texture objects
@@ -592,6 +594,14 @@ Display( )
 
 		}
 	}
+
+	if (nowTime > turkeyArrival ) {
+		glPushMatrix();
+			glCallList(TurkeyList);
+			glCallList(PlateList);
+		glPopMatrix();
+	}
+
 	glPopMatrix();
 	glTranslatef(-pinsPlacement / 2, 0, -sqrt(3) * pinsPlacement / 2);
 	glPushMatrix();
@@ -1102,6 +1112,24 @@ InitGraphics( )
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 	glTexImage2D(GL_TEXTURE_2D, 0, 3, width4, height4, 0, GL_RGB, GL_UNSIGNED_BYTE, bowlingPinTexture);
 
+	// Turkey Texture
+	int width5, height5;
+	char* TurkeyTextureFile = (char*)"turkey_texture.bmp";
+	unsigned char* turkeyTexturePtr = BmpToTexture(TurkeyTextureFile, &width5, &height5);
+	if (turkeyTexturePtr == NULL)
+		fprintf(stderr, "Cannot open texture '%s'\n", TurkeyTextureFile);
+	else
+		fprintf(stderr, "Opened '%s': width = %d ; height = %d\n", TurkeyTextureFile, width5, height5);
+
+	glGenTextures(1, &TurkeyTexture);
+	glBindTexture(GL_TEXTURE_2D, TurkeyTexture);
+	glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	glTexImage2D(GL_TEXTURE_2D, 0, 3, width5, height5, 0, GL_RGB, GL_UNSIGNED_BYTE, turkeyTexturePtr);
+
 
 	// Keytime Set Up For UFO
 
@@ -1286,7 +1314,7 @@ InitLists( )
 	float triangleEdge = 12;
 	glPushMatrix();
 		//glTranslatef(-triangleEdge / 2, 1, sqrt(3) * triangleEdge / 2);
-		glTranslatef(-.4, 1, .55);
+		glTranslatef(-.4, 1.1, .55);
 		glScalef(0.06, 0.06, 0.06);
 		glColor3f(1, 1, 1);
 		glPushMatrix();
@@ -1341,7 +1369,30 @@ InitLists( )
 	glPopMatrix();
 	glEndList();
 
-	
+	// Create the Turkey
+	TurkeyList = glGenLists(1);
+	glNewList(TurkeyList, GL_COMPILE);
+	glNormal3f(0., 1., 0.);
+	glPushMatrix();
+		//glColor3f(1.f, 1.f, 1.f);
+		glScalef(0.07, 0.07, 0.07);
+		glRotatef(-90, 1, 0, 0);
+		glBindTexture(GL_TEXTURE_2D, TurkeyTexture);
+		LoadObjFile((char*)"turkey.obj");
+		glPopMatrix();
+	glEndList();
+
+
+	// Create the Plate
+	PlateList = glGenLists(1);
+	glNewList(PlateList, GL_COMPILE);
+	glNormal3f(0., 1., 0.);
+	glPushMatrix();
+	glColor3f(.8, .8, .8);
+	LoadObjFile((char*)"plate.obj");
+	glPopMatrix();
+	glEndList();
+
 	
 
 	// create the axes:
