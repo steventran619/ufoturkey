@@ -198,6 +198,8 @@ int		Xmouse, Ymouse;			// mouse values
 float	Xrot, Yrot;				// rotation angles in degrees
 GLuint	UfoTexture;				// texture for the UFO	
 GLuint	MoonTexture;			// texture for the moon
+GLuint	StarTexture;			// texture for the stars
+
 //int		Tex0, Tex1;				// texture objects
 
 
@@ -301,6 +303,21 @@ MulArray3(float factor, float a, float b, float c )
 #include "keytime.cpp"
 //#include "glslprogram.cpp"
 
+// Keytime Declarations
+Keytimes xUfo;
+Keytimes yUfo;
+Keytimes zUfo;
+Keytimes yRotUfo;
+
+Keytimes yPins1;
+Keytimes yPins2;
+Keytimes yPins3;
+
+Keytimes PinsScale1;
+Keytimes PinsScale2;
+Keytimes PinsScale3;
+
+float pinsPlacement = 9;
 
 // main program:
 
@@ -422,7 +439,7 @@ Display( )
 
 	// set the eye position, look-at position, and up-vector:
 
-	gluLookAt( 0.f, 3.f, 5.5f,     0.f, 1.f, -25.f,     0.f, 1.f, 0.f );
+	gluLookAt( 0.f, 1.7f, 5.5f,     0.f, 6.f, -25.f,     0.f, 1.f, 0.f );
 
 	// rotate the scene:
 
@@ -463,31 +480,54 @@ Display( )
 
 	glEnable( GL_NORMALIZE );
 
+	// Enable Keytime Animations
+	// turn # msec into the cycle ( 0 - MSEC-1 ):
+	int msec = glutGet(GLUT_ELAPSED_TIME) % MS_PER_CYCLE;
+
+	// turn that into a time in seconds:
+	float nowTime = (float)msec / 1000.;
+
+
 	// draw the box object by calling up its display list:
 
 	glEnable(GL_TEXTURE_2D);
 	glBindTexture(GL_TEXTURE_2D, UfoTexture);
 	glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
-	glCallList(UfoList);
 
+	glPushMatrix();
+		//glTranslatef(xUfo.GetValue(nowTime), yUfo.GetValue(nowTime), zUfo.GetValue(nowTime));
+		glTranslatef(1.f, 0.f, -10.f);
+		glTranslatef(xUfo.GetValue(nowTime), yUfo.GetValue(nowTime), zUfo.GetValue(nowTime));
+		glRotatef(yRotUfo.GetValue(nowTime), 0, 1, 0);
+		glCallList(UfoList);
+	glPopMatrix();
+
+	// Star Texture Background
+	glBindTexture(GL_TEXTURE_2D, StarTexture);
+	glPushMatrix();
+		glTranslatef(0, 50, -100);
+		glRotatef(90, 1, 0, 0);
+		glCallList(GridDl);
+	glPopMatrix();
+
+	// Planet/Moon Texture
 	glBindTexture(GL_TEXTURE_2D, MoonTexture);
-	//glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
 	glCallList(GridDl);
 	glDisable(GL_TEXTURE_2D);
 
 
 
+
 	// Bowling set of pins based on equilateral triangle
 	// TODO: May need to change this so that it only displays within a certain time frame 
-	SetMaterial(1.f, 1.f, 1.f, 10.f);
+	SetMaterial(.9f, .9f, .9f, 15.f);
 	glPushMatrix();
-	float triangleEdge = 9;
-	glTranslatef(-triangleEdge / 2, 0, sqrt(3) * triangleEdge / 2);
+	glTranslatef(-pinsPlacement / 2, 0, sqrt(3) * pinsPlacement / 2);
 	for (int row = 1; row <= 2; row++) {
-		glTranslatef(-triangleEdge / 2, 0, -sqrt(3) * triangleEdge / 2);
+		glTranslatef(-pinsPlacement / 2, 0, -sqrt(3) * pinsPlacement / 2);
 		glPushMatrix();
 		for (int col = 1; col <= row; col++) {
-			glTranslatef(triangleEdge, 0, 0);
+			glTranslatef(pinsPlacement, 0, 0);
 			glCallList(BowlingPinsList);
 		}
 		glPopMatrix();
@@ -851,6 +891,10 @@ InitGraphics( )
 #endif
 
 	// all other setups go here, such as GLSLProgram and KeyTime setups:
+
+
+
+
 	int width, height;
 	char* file = (char*)"ufo_diffuse.bmp";
 	unsigned char* ufoTexture = BmpToTexture(file, &width, &height);
@@ -886,6 +930,87 @@ InitGraphics( )
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 	glTexImage2D(GL_TEXTURE_2D, 0, 3, width2, height2, 0, GL_RGB, GL_UNSIGNED_BYTE, moonTexture);
+
+	// Star Texture
+	int width3, height3;
+	char* starFile = (char*)"blue_stars.bmp";
+	unsigned char* starTexture = BmpToTexture(starFile, &width3, &height3);
+	if (starTexture == NULL)
+		fprintf(stderr, "Cannot open texture '%s'\n", starFile);
+	else
+		fprintf(stderr, "Opened '%s': width = %d ; height = %d\n", starFile, width3, height3);
+
+	glGenTextures(1, &StarTexture);
+	glBindTexture(GL_TEXTURE_2D, StarTexture);
+	glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	glTexImage2D(GL_TEXTURE_2D, 0, 3, width3, height3, 0, GL_RGB, GL_UNSIGNED_BYTE, starTexture);
+
+	// Keytime Set Up For UFO
+
+	// Keypoints
+	float hoverPeriod = 2.f;
+	float travelPeriod = .3f;
+	float firstPinArrival = travelPeriod;
+	float firstPinEnd = firstPinArrival + hoverPeriod;
+	float secondPinArrival = firstPinEnd + travelPeriod;
+	float secondPinEnd = secondPinArrival + hoverPeriod;
+	float thirdPinArrival = secondPinEnd + travelPeriod;
+	float thirdPinEnd = thirdPinArrival + hoverPeriod;
+	float ufoHoverHeight = 3.f;
+
+
+	xUfo.Init();
+	yUfo.Init();
+	zUfo.Init();
+	yRotUfo.Init();
+
+	for (float i = 0; i < 10; i += 0.1f) {
+		float rotation = 360 * i / 1.5;
+		yRotUfo.AddTimeValue(i, rotation);
+	}
+
+
+	xUfo.AddTimeValue(0.f, 0.f);
+	//xUfo.AddTimeValue(firstPinArrival, -pinsPlacement/2.f);
+	for (float i = firstPinArrival; i < firstPinEnd; i += 0.1f) {
+		xUfo.AddTimeValue(i, -pinsPlacement / 2.f - 1);
+	}
+
+	for (float i = secondPinArrival; i < secondPinEnd; i += 0.1f) {
+		xUfo.AddTimeValue(i, (pinsPlacement / 2.f) - .7);
+	}
+	//xUfo.AddTimeValue(secondPinEnd, pinsPlacement / 2);
+	for (float i = thirdPinArrival; i < thirdPinEnd; i += 0.1f) {
+		xUfo.AddTimeValue(i, -pinsPlacement / 8.f);
+	}
+
+	// UFO Vertical Movement
+	for (float i = firstPinArrival; i < secondPinEnd; i += 0.1f) {
+		yUfo.AddTimeValue(i, ufoHoverHeight);
+	}
+	for (float i = thirdPinArrival; i < thirdPinArrival + hoverPeriod; i += 0.1f) {
+		yUfo.AddTimeValue(i, ufoHoverHeight - .3);
+	}
+	yUfo.AddTimeValue(9, 99.f);
+
+	zUfo.AddTimeValue(0.f, -20.f);
+	for (float i = firstPinArrival; i < firstPinEnd; i += 0.1f) {
+		zUfo.AddTimeValue(i, 1);
+	}
+
+	for (float i = secondPinArrival; i < secondPinEnd; i += 0.1f) {
+		zUfo.AddTimeValue(i, 1);
+	}
+	//xUfo.AddTimeValue(secondPinEnd, pinsPlacement / 2);
+	for (float i = thirdPinArrival; i < thirdPinEnd; i += 0.1f) {
+		zUfo.AddTimeValue(i, 1 + sqrt(3) * pinsPlacement / 2);
+	}
+
+
 }
 
 
@@ -984,10 +1109,9 @@ InitLists( )
 	// Create a UFO
 	UfoList = glGenLists(1);
 	glNewList(UfoList, GL_COMPILE);
-	
 	glPushMatrix();
 		glColor3f(1.f, 1.f, 1.f);
-		glTranslatef(0.f, 10.f, -20.f);
+		//glTranslatef(1.f, 0.f, -10.f);
 		glScalef(0.1, 0.1, 0.1);
 		LoadObjFile((char*)"ufo_low_poly.obj");
 	glPopMatrix();
@@ -1001,7 +1125,7 @@ InitLists( )
 	glTranslatef(0, -.5, 0);
 	glColor3f(1.f, 1.f, 1.f);
 	// (s, t) for textures
-	float xmin = 0, xmax = 500, zmin = 0,  zmax = 1000;
+	float xmin = 0, xmax = 1024, zmin = 0,  zmax = 1024;
 	for (int i = 0; i < NZ; i++)
 	{
 		
