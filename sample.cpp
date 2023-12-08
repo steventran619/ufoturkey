@@ -319,6 +319,17 @@ Keytimes PinsScale3;
 
 float pinsPlacement = 9;
 
+// Global Keypoints
+float hoverPeriod = 2.f;
+float travelPeriod = .3f;
+float firstPinArrival = travelPeriod;
+float firstPinEnd = firstPinArrival + hoverPeriod;
+float secondPinArrival = firstPinEnd + travelPeriod;
+float secondPinEnd = secondPinArrival + hoverPeriod;
+float thirdPinArrival = secondPinEnd + travelPeriod;
+float thirdPinEnd = thirdPinArrival + hoverPeriod;
+float ufoHoverHeight = 3.f;
+
 // main program:
 
 int
@@ -409,7 +420,7 @@ Display( )
 
 	// specify shading to be flat:
 
-	glShadeModel( GL_FLAT );
+	glShadeModel( GL_SMOOTH );
 
 	// set the viewport to be a square centered in the window:
 
@@ -493,14 +504,38 @@ Display( )
 	glEnable(GL_TEXTURE_2D);
 	glBindTexture(GL_TEXTURE_2D, UfoTexture);
 	glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
+	
 
 	glPushMatrix();
 		//glTranslatef(xUfo.GetValue(nowTime), yUfo.GetValue(nowTime), zUfo.GetValue(nowTime));
+		glEnable(GL_LIGHTING);
+		glEnable(GL_LIGHT0);
+
 		glTranslatef(1.f, 0.f, -10.f);
+		
+		SetSpotLight(GL_LIGHT0,
+			xUfo.GetValue(nowTime),
+			yUfo.GetValue(nowTime) + 4,
+			zUfo.GetValue(nowTime),
+			0,
+			-10,
+			0,
+			0, 1, 0);
 		glTranslatef(xUfo.GetValue(nowTime), yUfo.GetValue(nowTime), zUfo.GetValue(nowTime));
+
+		
+
 		glRotatef(yRotUfo.GetValue(nowTime), 0, 1, 0);
 		glCallList(UfoList);
+		// Lighting
+		
+		
 	glPopMatrix();
+
+	// The Sun by eye location
+	SetPointLight(GL_LIGHT1, 0, 7, 3, 1, 1, 1);
+
+	if (nowTime )
 
 	// Star Texture Background
 	glBindTexture(GL_TEXTURE_2D, StarTexture);
@@ -522,23 +557,48 @@ Display( )
 	glDisable(GL_TEXTURE_2D);
 
 
-
-
 	// Bowling set of pins based on equilateral triangle
 	// TODO: May need to change this so that it only displays within a certain time frame 
-	SetMaterial(.9f, .9f, .9f, 15.f);
+	//SetMaterial(1.f, 1.f, 1.f, 15.f);
+	//glPushMatrix();
+	//glTranslatef(-pinsPlacement / 2, 0, sqrt(3) * pinsPlacement / 2);
+	//for (int row = 1; row <= 2; row++) {
+	//	glTranslatef(-pinsPlacement / 2, 0, -sqrt(3) * pinsPlacement / 2);
+	//	glPushMatrix();
+	//	for (int col = 1; col <= row; col++) {
+	//		glTranslatef(pinsPlacement, 0, 0);
+	//		glCallList(BowlingPinsList);
+	//	}
+	//	glPopMatrix();
+	//	}
+	//glPopMatrix();
+
+	// Attempt at isolating the 3 pin sets
+	SetMaterial(1.f, 1.f, 1.f, 15.f);
 	glPushMatrix();
 	glTranslatef(-pinsPlacement / 2, 0, sqrt(3) * pinsPlacement / 2);
-	for (int row = 1; row <= 2; row++) {
-		glTranslatef(-pinsPlacement / 2, 0, -sqrt(3) * pinsPlacement / 2);
-		glPushMatrix();
-		for (int col = 1; col <= row; col++) {
-			glTranslatef(pinsPlacement, 0, 0);
-			glCallList(BowlingPinsList);
-		}
-		glPopMatrix();
-		}
+	glTranslatef(-pinsPlacement / 2, 0, -sqrt(3) * pinsPlacement / 2);
+	glPushMatrix();
+	glTranslatef(pinsPlacement, 0, 0);
+	if (nowTime < thirdPinEnd)
+		glCallList(BowlingPinsList);	// pin set front (1)
 	glPopMatrix();
+	glTranslatef(-pinsPlacement / 2, 0, -sqrt(3) * pinsPlacement / 2);
+	glPushMatrix();
+	glTranslatef(pinsPlacement, 0, 0);
+	if (nowTime < firstPinEnd)
+		glCallList(BowlingPinsList);	// pin set back left (2)
+	glTranslatef(pinsPlacement, 0, 0);
+	if (nowTime < secondPinEnd)
+		glCallList(BowlingPinsList);	// pin set back right (3)
+	glPopMatrix();
+	glPopMatrix();
+
+
+
+
+
+	glDisable(GL_LIGHTING);
 
 
 #ifdef DEMO_Z_FIGHTING
@@ -957,16 +1017,16 @@ InitGraphics( )
 
 	// Keytime Set Up For UFO
 
-	// Keypoints
-	float hoverPeriod = 2.f;
-	float travelPeriod = .3f;
-	float firstPinArrival = travelPeriod;
-	float firstPinEnd = firstPinArrival + hoverPeriod;
-	float secondPinArrival = firstPinEnd + travelPeriod;
-	float secondPinEnd = secondPinArrival + hoverPeriod;
-	float thirdPinArrival = secondPinEnd + travelPeriod;
-	float thirdPinEnd = thirdPinArrival + hoverPeriod;
-	float ufoHoverHeight = 3.f;
+	//// Keypoints
+	//float hoverPeriod = 2.f;
+	//float travelPeriod = .3f;
+	//float firstPinArrival = travelPeriod;
+	//float firstPinEnd = firstPinArrival + hoverPeriod;
+	//float secondPinArrival = firstPinEnd + travelPeriod;
+	//float secondPinEnd = secondPinArrival + hoverPeriod;
+	//float thirdPinArrival = secondPinEnd + travelPeriod;
+	//float thirdPinEnd = thirdPinArrival + hoverPeriod;
+	//float ufoHoverHeight = 3.f;
 
 	// Initialize UFO Keytimes
 	xUfo.Init();
