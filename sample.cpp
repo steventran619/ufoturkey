@@ -512,7 +512,13 @@ Display( )
 
 	// Planet/Moon Texture
 	glBindTexture(GL_TEXTURE_2D, MoonTexture);
-	glCallList(GridDl);
+	glPushMatrix();
+		glScalef(.2, .2, .2);
+		glTranslatef(0, 0, -60);
+		glRotatef(90, 0, 1, 0);
+		glCallList(GridDl);
+	glPopMatrix();
+
 	glDisable(GL_TEXTURE_2D);
 
 
@@ -962,17 +968,17 @@ InitGraphics( )
 	float thirdPinEnd = thirdPinArrival + hoverPeriod;
 	float ufoHoverHeight = 3.f;
 
-
+	// Initialize UFO Keytimes
 	xUfo.Init();
 	yUfo.Init();
 	zUfo.Init();
 	yRotUfo.Init();
 
+	// Ufo Rotation
 	for (float i = 0; i < 10; i += 0.1f) {
 		float rotation = 360 * i / 1.5;
 		yRotUfo.AddTimeValue(i, rotation);
 	}
-
 
 	xUfo.AddTimeValue(0.f, 0.f);
 	//xUfo.AddTimeValue(firstPinArrival, -pinsPlacement/2.f);
