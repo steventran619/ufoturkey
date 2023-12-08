@@ -177,6 +177,7 @@ const int MS_PER_CYCLE = 10000;		// 10000 milliseconds = 10 seconds
 
 int		ActiveButton;			// current button that is down
 GLuint	AxesList;				// list to hold the axes
+GLuint	CylinderList;				// list to hold the beam
 GLuint	BowlingPinsList;		// list to hold the bowling pins
 GLuint	GridDl;					// list to hold the grid/planet
 GLuint	TurkeyList;				// list to hold the turkey
@@ -508,8 +509,11 @@ Display( )
 
 	glPushMatrix();
 		//glTranslatef(xUfo.GetValue(nowTime), yUfo.GetValue(nowTime), zUfo.GetValue(nowTime));
+			// Lighting
+
 		glEnable(GL_LIGHTING);
 		glEnable(GL_LIGHT0);
+		glEnable(GL_LIGHT1);
 
 		glTranslatef(1.f, 0.f, -10.f);
 		
@@ -523,11 +527,8 @@ Display( )
 			0, 1, 0);
 		glTranslatef(xUfo.GetValue(nowTime), yUfo.GetValue(nowTime), zUfo.GetValue(nowTime));
 
-		
-
 		glRotatef(yRotUfo.GetValue(nowTime), 0, 1, 0);
 		glCallList(UfoList);
-		// Lighting
 		
 		
 	glPopMatrix();
@@ -575,6 +576,7 @@ Display( )
 
 	// Attempt at isolating the 3 pin sets
 	SetMaterial(1.f, 1.f, 1.f, 15.f);
+	//glMaterialfv(GL_FRONT, GL_AMBIENT, WHITE);
 	glPushMatrix();
 	glTranslatef(-pinsPlacement / 2, 0, sqrt(3) * pinsPlacement / 2);
 	glTranslatef(-pinsPlacement / 2, 0, -sqrt(3) * pinsPlacement / 2);
@@ -594,11 +596,21 @@ Display( )
 	glPopMatrix();
 	glPopMatrix();
 
-
-
-
-
 	glDisable(GL_LIGHTING);
+
+	glEnable(GL_BLEND);			// enable color blending	
+	glDepthMask(GL_FALSE); // disable writes to Z-Buffer
+
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);	// how to blend
+
+	glPushMatrix();
+		glTranslatef(0, 0, -sqrt(3) * pinsPlacement / 12);
+		glCallList(CylinderList);
+	glPopMatrix();
+
+	glDepthMask(GL_TRUE);
+	glDisable(GL_BLEND);
+
 
 
 #ifdef DEMO_Z_FIGHTING
@@ -1036,7 +1048,7 @@ InitGraphics( )
 
 	// Ufo Rotation
 	for (float i = 0; i < 10; i += 0.1f) {
-		float rotation = 360 * i / 1.5;
+		float rotation = 360 * i;
 		yRotUfo.AddTimeValue(i, rotation);
 	}
 
@@ -1095,6 +1107,24 @@ InitLists( )
 	float dy = BOXSIZE / 2.f;
 	float dz = BOXSIZE / 2.f;
 	glutSetWindow( MainWindow );
+
+	// create the transparent cylinder beam;
+	float cylinderRadius = 1.6;
+	CylinderList = glGenLists(1);
+	glNewList(CylinderList, GL_COMPILE);
+		glBegin(GL_TRIANGLE_STRIP);
+		glColor4f(0.2, 1., .2, .2);
+		for (int i = 0; i <= 360; i += 10) 
+		{
+			float angle = i * F_PI / 180.f;
+			float x = cylinderRadius * cos(angle);
+			float y = cylinderRadius * sin(angle);
+			glNormal3f(x, 0, y);
+			glVertex3f(x, 0, y);
+			glVertex3f(x, 4, y);
+		}
+		glEnd();
+	glEndList();
 
 	// create the object:
 
@@ -1189,12 +1219,11 @@ InitLists( )
 	glNormal3f(0., 1., 0.);
 	glPushMatrix();
 	glTranslatef(0, -.5, 0);
-	glColor3f(1.f, 1.f, 1.f);
+	//glColor3f(1.f, 1.f, 1.f);
 	// (s, t) for textures
 	float xmin = 0, xmax = 1024, zmin = 0,  zmax = 1024;
 	for (int i = 0; i < NZ; i++)
 	{
-		
 		glBegin(GL_QUAD_STRIP);
 		for (int j = 0; j < NX; j++)
 		{
@@ -1209,6 +1238,8 @@ InitLists( )
 	glPopMatrix();
 	glEndList();
 
+	
+	
 
 	// create the axes:
 
