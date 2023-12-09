@@ -163,7 +163,7 @@ const float	WHITE[ ] = { 1.,1.,1.,1. };
 
 // for animation:
 
-const int MS_PER_CYCLE = 11000;		// 10000 milliseconds = 10 seconds
+const int MS_PER_CYCLE = 12000;		// 10000 milliseconds = 10 seconds
 
 // what options should we compile-in?
 // in general, you don't need to worry about these
@@ -320,6 +320,7 @@ Keytimes PinsScale3;
 
 Keytimes TurkeyScale;
 Keytimes yTurkey;
+Keytimes TextScale;
 
 // Global Keypoints
 float hoverPeriod = 2.f;
@@ -513,9 +514,7 @@ Display( )
 	
 
 	glPushMatrix();
-		//glTranslatef(xUfo.GetValue(nowTime), yUfo.GetValue(nowTime), zUfo.GetValue(nowTime));
-			// Lighting
-
+		// Lighting
 		glEnable(GL_LIGHTING);
 		glEnable(GL_LIGHT0);
 		glEnable(GL_LIGHT1);
@@ -544,7 +543,7 @@ Display( )
 	// The Sun by eye location
 	SetPointLight(GL_LIGHT1, 0, 7, 3, 1, 1, 1);
 
-	if (nowTime )
+	//if (nowTime )
 
 	// Star Texture Background
 	glBindTexture(GL_TEXTURE_2D, StarTexture);
@@ -614,7 +613,7 @@ Display( )
 		glPopMatrix();
 		glPushMatrix();
 			glTranslatef(0, 6, -4);
-			glScalef(2, 2, 2);
+			glScalef(TextScale.GetValue(nowTime), TextScale.GetValue(nowTime), TextScale.GetValue(nowTime));
 			SetMaterial(1, .1, .1, 12);
 			glCallList(TurkeyLabel);
 		glPopMatrix();
@@ -1149,22 +1148,25 @@ InitGraphics( )
 	yRotUfo.Init();
 
 	// Ufo Rotation
-	for (float i = 0; i < 10; i += 0.1f) {
+	for (float i = 0; i < 12; i += 0.1f) {
 		float rotation = 360 * i;
 		yRotUfo.AddTimeValue(i, rotation);
 	}
 
+	// UFO Horizontal Movement
 	xUfo.AddTimeValue(0.f, 0.f);
-	for (float i = firstPinArrival; i < firstPinEnd; i += 0.1f) {
+	for (float i = firstPinArrival; i <= firstPinEnd; i += 0.1f) {
 		xUfo.AddTimeValue(i, -pinsPlacement / 2.f - 1);
 	}
 
-	for (float i = secondPinArrival; i < secondPinEnd; i += 0.1f) {
+	for (float i = secondPinArrival; i <= secondPinEnd; i += 0.1f) {
 		xUfo.AddTimeValue(i, (pinsPlacement / 2.f) - .7);
 	}
-	for (float i = thirdPinArrival; i < thirdPinEnd; i += 0.1f) {
+	for (float i = thirdPinArrival; i <= turkeyEnd; i += 0.1f) {
 		xUfo.AddTimeValue(i, -pinsPlacement / 8.f);
 	}
+	xUfo.AddTimeValue(turkeyEnd + 1, 15);
+	xUfo.AddTimeValue(turkeyEnd + 3, -60);
 
 	// UFO Vertical Movement
 	for (float i = firstPinArrival; i < secondPinEnd; i += 0.1f) {
@@ -1173,8 +1175,10 @@ InitGraphics( )
 	for (float i = thirdPinArrival; i < turkeyEnd; i += 0.1f) {
 		yUfo.AddTimeValue(i, ufoHoverHeight - .3);
 	}
-	yUfo.AddTimeValue(turkeyEnd + 2, 99.f);
+	yUfo.AddTimeValue(turkeyEnd + 1, 3.f);
+	yUfo.AddTimeValue(turkeyEnd + 3, 40.f);
 
+	// UFO Forward/Backward Movement
 	zUfo.AddTimeValue(0.f, -20.f);
 	for (float i = firstPinArrival; i < firstPinEnd; i += 0.1f) {
 		zUfo.AddTimeValue(i, 1);
@@ -1183,9 +1187,12 @@ InitGraphics( )
 	for (float i = secondPinArrival; i < secondPinEnd; i += 0.1f) {
 		zUfo.AddTimeValue(i, 1);
 	}
-	for (float i = thirdPinArrival; i < thirdPinEnd; i += 0.1f) {
+	for (float i = thirdPinArrival; i < turkeyEnd; i += 0.1f) {
 		zUfo.AddTimeValue(i, 1 + sqrt(3) * pinsPlacement / 2);
 	}
+	zUfo.AddTimeValue(turkeyEnd + 1, -10);
+	zUfo.AddTimeValue(turkeyEnd + 3, -30);
+
 
 	// Keytime Set Up For Bowling Pins
 	yPins1.Init();
@@ -1221,6 +1228,10 @@ InitGraphics( )
 	yTurkey.Init();
 	yTurkey.AddTimeValue(thirdPinEnd, 9.f);
 	yTurkey.AddTimeValue(turkeyArrival, 0.f);
+
+	TextScale.Init();
+	TextScale.AddTimeValue(turkeyArrival, 2.f);
+	TextScale.AddTimeValue(turkeyArrival + 5, 2.3f);
 }
 
 
