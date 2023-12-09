@@ -163,7 +163,7 @@ const float	WHITE[ ] = { 1.,1.,1.,1. };
 
 // for animation:
 
-const int MS_PER_CYCLE = 12000;		// 10000 milliseconds = 10 seconds
+const int MS_PER_CYCLE = 11000;		// 10000 milliseconds = 10 seconds
 
 
 // what options should we compile-in?
@@ -321,6 +321,9 @@ Keytimes yPins3;
 Keytimes PinsScale1;
 Keytimes PinsScale2;
 Keytimes PinsScale3;
+
+Keytimes TurkeyScale;
+Keytimes yTurkey;
 
 float pinsPlacement = 9;
 
@@ -523,15 +526,19 @@ Display( )
 		glEnable(GL_LIGHT1);
 
 		glTranslatef(1.f, 0.f, -10.f);
-		
-		SetSpotLight(GL_LIGHT0,
-			xUfo.GetValue(nowTime),
-			yUfo.GetValue(nowTime) + 4,
-			zUfo.GetValue(nowTime),
-			0,
-			-10,
-			0,
-			0, 1, 0);
+		if (nowTime < thirdPinEnd) {
+			SetSpotLight(GL_LIGHT0,
+				xUfo.GetValue(nowTime),
+				yUfo.GetValue(nowTime) + 4,
+				zUfo.GetValue(nowTime),
+				0,
+				-10,
+				0,
+				0, 1, 0);
+		}
+		else {
+			glDisable(GL_LIGHT0);
+		}
 		glTranslatef(xUfo.GetValue(nowTime), yUfo.GetValue(nowTime), zUfo.GetValue(nowTime));
 		glRotatef(yRotUfo.GetValue(nowTime), 0, 1, 0);
 		glCallList(UfoList);
@@ -595,11 +602,21 @@ Display( )
 		}
 	}
 
-	if (nowTime > turkeyArrival ) {
+	// TODO: Lower the turkey from 4 to 0
+	// TODO: Scale the turkey small to large 
+	if (nowTime > thirdPinEnd ) {
 		glPushMatrix();
-			glCallList(TurkeyList);
-			glCallList(PlateList);
+			glTranslatef(0, 0, -1.5);
+			//glScalef(.8, .8, .8);
+			glPushMatrix();
+				glScalef(TurkeyScale.GetValue(nowTime), TurkeyScale.GetValue(nowTime), TurkeyScale.GetValue(nowTime));
+				glTranslatef(0, yTurkey.GetValue(nowTime), 0);
+				glCallList(TurkeyList);
+				glDisable(GL_TEXTURE_2D);
+				glCallList(PlateList);
+			glPopMatrix();
 		glPopMatrix();
+
 	}
 
 	glPopMatrix();
@@ -655,7 +672,7 @@ Display( )
 	glPushMatrix();
 		glTranslatef(pinsPlacement, 0, -1.05);
 		// Third Beam
-		if (nowTime > thirdPinArrival && nowTime < turkeyArrival) {
+		if (nowTime > thirdPinArrival && nowTime <= turkeyArrival) {
 			glCallList(CylinderList);
 		}
 	glPopMatrix();
@@ -1172,10 +1189,10 @@ InitGraphics( )
 	for (float i = firstPinArrival; i < secondPinEnd; i += 0.1f) {
 		yUfo.AddTimeValue(i, ufoHoverHeight);
 	}
-	for (float i = thirdPinArrival; i < turkeyArrival; i += 0.1f) {
+	for (float i = thirdPinArrival; i < turkeyEnd; i += 0.1f) {
 		yUfo.AddTimeValue(i, ufoHoverHeight - .3);
 	}
-	yUfo.AddTimeValue(turkeyEnd, 99.f);
+	yUfo.AddTimeValue(turkeyEnd + 2, 99.f);
 
 	zUfo.AddTimeValue(0.f, -20.f);
 	for (float i = firstPinArrival; i < firstPinEnd; i += 0.1f) {
@@ -1215,6 +1232,14 @@ InitGraphics( )
 
 	PinsScale3.AddTimeValue(thirdPinArrival, 1.f);
 	PinsScale3.AddTimeValue(thirdPinEnd, 0.2f);
+
+	TurkeyScale.Init();
+	TurkeyScale.AddTimeValue(thirdPinEnd, 0.4f);
+	TurkeyScale.AddTimeValue(turkeyArrival, 0.8f);
+
+	yTurkey.Init();
+	yTurkey.AddTimeValue(thirdPinEnd, 9.f);
+	yTurkey.AddTimeValue(turkeyArrival, 0.f);
 
 
 }
@@ -1374,12 +1399,11 @@ InitLists( )
 	glNewList(TurkeyList, GL_COMPILE);
 	glNormal3f(0., 1., 0.);
 	glPushMatrix();
-		//glColor3f(1.f, 1.f, 1.f);
 		glScalef(0.07, 0.07, 0.07);
 		glRotatef(-90, 1, 0, 0);
 		glBindTexture(GL_TEXTURE_2D, TurkeyTexture);
 		LoadObjFile((char*)"turkey.obj");
-		glPopMatrix();
+	glPopMatrix();
 	glEndList();
 
 
@@ -1387,8 +1411,8 @@ InitLists( )
 	PlateList = glGenLists(1);
 	glNewList(PlateList, GL_COMPILE);
 	glNormal3f(0., 1., 0.);
+	SetMaterial(.85, .85, .85, 12);
 	glPushMatrix();
-	glColor3f(.8, .8, .8);
 	LoadObjFile((char*)"plate.obj");
 	glPopMatrix();
 	glEndList();
