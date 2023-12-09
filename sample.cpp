@@ -182,6 +182,8 @@ GLuint	BowlingPinsList;		// list to hold the bowling pins
 GLuint	GridDl;					// list to hold the grid/planet
 GLuint	TurkeyList;				// list to hold the turkey
 GLuint	PlateList;				// list to hold the plate
+GLuint	TurkeyLabel;			// list to hold the turkey label
+GLuint	TerrainList;			// list to hold the turkey label
 GLuint	UfoList;				// list to hold the UFO
 int		AxesOn;					// != 0 means to draw the axes
 GLuint	BoxList;				// object display list
@@ -567,6 +569,10 @@ Display( )
 		glRotatef(90, 0, 1, 0);
 		glCallList(GridDl);
 	glPopMatrix();
+	glPushMatrix();
+		glTranslatef(0, 0, -14);
+		glCallList(TerrainList);
+	glPopMatrix();
 
 
 	// Attempt at isolating the 3 pin sets
@@ -616,7 +622,12 @@ Display( )
 				glCallList(PlateList);
 			glPopMatrix();
 		glPopMatrix();
-
+		glPushMatrix();
+			glTranslatef(0, 6, -4);
+			glScalef(2, 2, 2);
+			SetMaterial(1, .1, .1, 12);
+			glCallList(TurkeyLabel);
+		glPopMatrix();
 	}
 
 	glPopMatrix();
@@ -715,7 +726,7 @@ Display( )
 
 	glDisable( GL_DEPTH_TEST );
 	glColor3f( 0.f, 1.f, 1.f );
-	//DoRasterString( 0.f, 1.f, 0.f, (char *)"Text That Moves" );
+	//DoRasterString( 0.f, 1.f, 0.f, (char *)"Turkey" );
 
 
 	// draw some gratuitous text that is fixed on the screen:
@@ -858,7 +869,8 @@ DoRasterString( float x, float y, float z, char *s )
 	char c;			// one character to print
 	for( ; ( c = *s ) != '\0'; s++ )
 	{
-		glutBitmapCharacter( GLUT_BITMAP_TIMES_ROMAN_24, c );
+		//glutBitmapCharacter( GLUT_BITMAP_TIMES_ROMAN_24, c );
+		glutBitmapCharacter( GLUT_BITMAP_HELVETICA_18, c );
 	}
 }
 
@@ -1147,20 +1159,6 @@ InitGraphics( )
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 	glTexImage2D(GL_TEXTURE_2D, 0, 3, width5, height5, 0, GL_RGB, GL_UNSIGNED_BYTE, turkeyTexturePtr);
 
-
-	// Keytime Set Up For UFO
-
-	//// Keypoints
-	//float hoverPeriod = 2.f;
-	//float travelPeriod = .3f;
-	//float firstPinArrival = travelPeriod;
-	//float firstPinEnd = firstPinArrival + hoverPeriod;
-	//float secondPinArrival = firstPinEnd + travelPeriod;
-	//float secondPinEnd = secondPinArrival + hoverPeriod;
-	//float thirdPinArrival = secondPinEnd + travelPeriod;
-	//float thirdPinEnd = thirdPinArrival + hoverPeriod;
-	//float ufoHoverHeight = 3.f;
-
 	// Initialize UFO Keytimes
 	xUfo.Init();
 	yUfo.Init();
@@ -1231,7 +1229,7 @@ InitGraphics( )
 	PinsScale2.AddTimeValue(secondPinEnd, 0.1f);
 
 	PinsScale3.AddTimeValue(thirdPinArrival, 1.f);
-	PinsScale3.AddTimeValue(thirdPinEnd, 0.2f);
+	PinsScale3.AddTimeValue(thirdPinEnd, 0.1f);
 
 	TurkeyScale.Init();
 	TurkeyScale.AddTimeValue(thirdPinEnd, 0.4f);
@@ -1417,6 +1415,36 @@ InitLists( )
 	glPopMatrix();
 	glEndList();
 
+	// Create the Turkey LABEL
+	TurkeyLabel = glGenLists(1);
+	glNewList(TurkeyLabel, GL_COMPILE);
+	glNormal3f(0., 1., 0.);
+	glPushMatrix();
+		glRotatef(-90, 0, 1, 0);
+	LoadObjFile((char*)"turkey_string.obj");
+	glPopMatrix();
+	glEndList();
+
+	// Create the Terrain
+	TerrainList = glGenLists(1);
+	glNewList(TerrainList, GL_COMPILE);
+	glNormal3f(0., 1., 0.);
+	glPushMatrix();
+		glTranslatef(0, -13, 0);
+		glPushMatrix();
+			glTranslatef(-20, 0, -10);
+			LoadObjFile((char*)"rock1.obj");
+			glTranslatef(30, 0, 5);
+			LoadObjFile((char*)"rock1.obj");
+		glPopMatrix();
+		glRotatef(180, 0, 1, 0);
+		LoadObjFile((char*)"rock1.obj");
+		glRotatef(35, 0, 1, 0);
+		glTranslatef(0, 0, 8);
+		LoadObjFile((char*)"rock1.obj");
+	glPopMatrix();
+	glEndList();
+
 	
 
 	// create the axes:
@@ -1569,7 +1597,7 @@ void
 Reset( )
 {
 	ActiveButton = 0;
-	AxesOn = 1;
+	AxesOn = 0;
 	DebugOn = 0;
 	DepthBufferOn = 1;
 	DepthFightingOn = 0;
