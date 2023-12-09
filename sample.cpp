@@ -165,7 +165,6 @@ const float	WHITE[ ] = { 1.,1.,1.,1. };
 
 const int MS_PER_CYCLE = 11000;		// 10000 milliseconds = 10 seconds
 
-
 // what options should we compile-in?
 // in general, you don't need to worry about these
 // i compile these in to show class examples of things going wrong
@@ -177,7 +176,7 @@ const int MS_PER_CYCLE = 11000;		// 10000 milliseconds = 10 seconds
 
 int		ActiveButton;			// current button that is down
 GLuint	AxesList;				// list to hold the axes
-GLuint	CylinderList;				// list to hold the beam
+GLuint	CylinderList;			// list to hold the beam
 GLuint	BowlingPinsList;		// list to hold the bowling pins
 GLuint	GridDl;					// list to hold the grid/planet
 GLuint	TurkeyList;				// list to hold the turkey
@@ -193,7 +192,7 @@ int		DepthBufferOn;			// != 0 means to use the z-buffer
 int		DepthFightingOn;		// != 0 means to force the creation of z-fighting
 int		MainWindow;				// window id for main graphics window
 int		NowColor;				// index into Colors[ ]
-int		NowProjection;		// ORTHO or PERSP
+int		NowProjection;			// ORTHO or PERSP
 float	Scale;					// scaling factor
 int		ShadowsOn;				// != 0 means to turn shadows on
 float	Time;					// used for animation, this has a value between 0. and 1.
@@ -204,11 +203,6 @@ GLuint	MoonTexture;			// texture for the moon
 GLuint	StarTexture;			// texture for the stars
 GLuint	BowlingPinTexture;		// texture for the bowling pin
 GLuint	TurkeyTexture;			// texture for the turkey
-
-
-
-//int		Tex0, Tex1;				// texture objects
-
 
 // function prototypes:
 
@@ -327,8 +321,6 @@ Keytimes PinsScale3;
 Keytimes TurkeyScale;
 Keytimes yTurkey;
 
-float pinsPlacement = 9;
-
 // Global Keypoints
 float hoverPeriod = 2.f;
 float travelPeriod = .3f;
@@ -341,6 +333,7 @@ float thirdPinEnd = thirdPinArrival + hoverPeriod;
 float turkeyArrival = thirdPinEnd + 0.5f;
 float turkeyEnd = turkeyArrival + hoverPeriod/2;
 
+float pinsPlacement = 9;
 float ufoHoverHeight = 3.f;
 
 // main program:
@@ -593,7 +586,7 @@ Display( )
 	glTranslatef(-pinsPlacement / 2, 0, -sqrt(3) * pinsPlacement / 2);
 	glPushMatrix();
 	glTranslatef(pinsPlacement, 0, 0);
-	// Front Pin Setting
+	// Front Pin (#3) Setting
 	if (nowTime < thirdPinEnd - dissapearOffsetTime - .2) {
 		if (nowTime > thirdPinArrival) {
 			glPushMatrix();
@@ -604,16 +597,13 @@ Display( )
 		}
 		else {
 			glCallList(BowlingPinsList);
-
 		}
 	}
 
-	// TODO: Lower the turkey from 4 to 0
-	// TODO: Scale the turkey small to large 
+	// Display the turkey, plate, and label
 	if (nowTime > thirdPinEnd ) {
 		glPushMatrix();
 			glTranslatef(0, 0, -1.5);
-			//glScalef(.8, .8, .8);
 			glPushMatrix();
 				glScalef(TurkeyScale.GetValue(nowTime), TurkeyScale.GetValue(nowTime), TurkeyScale.GetValue(nowTime));
 				glTranslatef(0, yTurkey.GetValue(nowTime), 0);
@@ -629,12 +619,12 @@ Display( )
 			glCallList(TurkeyLabel);
 		glPopMatrix();
 	}
-
 	glPopMatrix();
+
+	// Back Left Pin (#1) Setting
 	glTranslatef(-pinsPlacement / 2, 0, -sqrt(3) * pinsPlacement / 2);
 	glPushMatrix();
 	glTranslatef(pinsPlacement, 0, 0);
-	// Back Left Pin (1st) Setting
 	if (nowTime < firstPinEnd - dissapearOffsetTime) {
 
 		if (nowTime > firstPinArrival) {
@@ -646,13 +636,11 @@ Display( )
 		}
 		else {
 			glCallList(BowlingPinsList);
-
 		}
 	}
 	glTranslatef(pinsPlacement, 0, 0);
-	// Back Right Pin (2nd) Setting
+	// Back Right Pin (#2) Setting
 	if (nowTime < secondPinEnd - dissapearOffsetTime)
-		//glCallList(BowlingPinsList);	// pin set back right (3)
 		if (nowTime > secondPinArrival) {
 			glPushMatrix();
 			glTranslatef(0, yPins2.GetValue(nowTime), 0);
@@ -662,7 +650,6 @@ Display( )
 		}
 		else {
 			glCallList(BowlingPinsList);
-
 		}
 	glPopMatrix();
 	glPopMatrix();
@@ -674,7 +661,6 @@ Display( )
 	glEnable(GL_BLEND);						// enable color blending	
 	glDepthMask(GL_FALSE);					// disable writes to Z-Buffer
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);	
-
 
 	// Beam Transparency
 	glPushMatrix();
@@ -702,11 +688,8 @@ Display( )
 	glPopMatrix();
 	glPopMatrix();
 
-
 	glDepthMask(GL_TRUE);
 	glDisable(GL_BLEND);
-
-
 
 #ifdef DEMO_Z_FIGHTING
 	if( DepthFightingOn != 0 )
@@ -1238,8 +1221,6 @@ InitGraphics( )
 	yTurkey.Init();
 	yTurkey.AddTimeValue(thirdPinEnd, 9.f);
 	yTurkey.AddTimeValue(turkeyArrival, 0.f);
-
-
 }
 
 
@@ -1336,7 +1317,6 @@ InitLists( )
 	
 	float triangleEdge = 12;
 	glPushMatrix();
-		//glTranslatef(-triangleEdge / 2, 1, sqrt(3) * triangleEdge / 2);
 		glTranslatef(-.4, 1.1, .55);
 		glScalef(0.06, 0.06, 0.06);
 		glColor3f(1, 1, 1);
@@ -1373,8 +1353,6 @@ InitLists( )
 	glNormal3f(0., 1., 0.);
 	glPushMatrix();
 	glTranslatef(0, -.5, 0);
-	//glColor3f(1.f, 1.f, 1.f);
-	// (s, t) for textures
 	float xmin = 0, xmax = 1024, zmin = 0,  zmax = 1024;
 	for (int i = 0; i < NZ; i++)
 	{
@@ -1415,7 +1393,7 @@ InitLists( )
 	glPopMatrix();
 	glEndList();
 
-	// Create the Turkey LABEL
+	// Create the Turkey Label
 	TurkeyLabel = glGenLists(1);
 	glNewList(TurkeyLabel, GL_COMPILE);
 	glNormal3f(0., 1., 0.);
@@ -1425,7 +1403,7 @@ InitLists( )
 	glPopMatrix();
 	glEndList();
 
-	// Create the Terrain
+	// Create the Terrain List
 	TerrainList = glGenLists(1);
 	glNewList(TerrainList, GL_COMPILE);
 	glNormal3f(0., 1., 0.);
@@ -1445,10 +1423,7 @@ InitLists( )
 	glPopMatrix();
 	glEndList();
 
-	
-
 	// create the axes:
-
 	AxesList = glGenLists( 1 );
 	glNewList( AxesList, GL_COMPILE );
 		glLineWidth( AXES_WIDTH );
@@ -1456,7 +1431,6 @@ InitLists( )
 		glLineWidth( 1. );
 	glEndList( );
 }
-
 
 // the keyboard callback:
 
